@@ -5,6 +5,8 @@ import android.content.Intent
 import android.media.MediaPlayer
 import android.os.*
 import android.provider.Settings
+import java.text.SimpleDateFormat
+import java.util.*
 import kotlin.concurrent.thread
 
 class MyAndroidService : Service() {
@@ -12,9 +14,6 @@ class MyAndroidService : Service() {
     private lateinit var handler : Handler
     private lateinit var serviceLooper: Looper
     public var id : Int = 0
-    override fun onBind(intent : Intent?): IBinder? {
-       return null
-    }
 
     override fun onCreate() {
         super.onCreate()
@@ -28,16 +27,20 @@ class MyAndroidService : Service() {
                     player.isLooping = true
                     player.start()
                     try{
-                        Thread.sleep(5000)
+                        Thread.sleep(3000)
                     }
                     catch (ex : InterruptedException){
 
                     }
-                    stopSelf( (msg.obj as MyAndroidService).id )
+                   // stopSelf(msg.arg1)
+                    player.stop()
                 }
             }
         }
     }
+
+    //Started Service
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 //        Service Without Handler and Thread
 
@@ -49,6 +52,7 @@ class MyAndroidService : Service() {
         var message = Message()
         this.id=startId
         message.obj = this
+        message.arg1=startId
         handler.sendMessage(message)
         return START_STICKY
     }
@@ -58,4 +62,21 @@ class MyAndroidService : Service() {
         super.onDestroy()
         player.stop()
     }
+
+    //Bounded Service
+    private val binder = LocalBinder()
+
+    inner class LocalBinder() : Binder(){
+        fun getService() = this@MyAndroidService
+    }
+
+    override fun onBind(intent : Intent?): IBinder? {
+        return binder
+    }
+
+    fun getTime(): String {
+        val time = SimpleDateFormat("ss.mm.hh   dd/mm/yy" , Locale.US)
+        return time.format(Date())
+    }
+
 }
